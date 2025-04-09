@@ -151,13 +151,18 @@ func (h CloudflareHandle) ListRecords(ctx context.Context, ppfmt pp.PP, ipNet ip
 		return nil, false, false
 	}
 
+	params := cloudflare.ListDNSRecordsParams{
+		Name: domain.DNSNameASCII(),
+		Type: ipNet.RecordType(),
+	}
+
+	// TODO: add the filter only when enabled
+	params.Comment = expectedParams.Comment
+
 	//nolint:exhaustruct // Other fields are intentionally unspecified
 	raw, _, err := h.cf.ListDNSRecords(ctx,
 		cloudflare.ZoneIdentifier(string(zone)),
-		cloudflare.ListDNSRecordsParams{
-			Name: domain.DNSNameASCII(),
-			Type: ipNet.RecordType(),
-		})
+		params)
 	if err != nil {
 		ppfmt.Noticef(pp.EmojiError,
 			"Failed to retrieve %s records of %s: %v",
